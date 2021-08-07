@@ -39,7 +39,7 @@ lis
 # In[ ]:
 
 
-# delete_files(r'D:\春歌ナナVer1.3\New\*')
+#delete_files(r'D:\春歌ナナVer1.3\New\*')
 
 
 # In[ ]:
@@ -140,37 +140,53 @@ table=dict((key,value) for key,value in zip(kana,alpha))
 # In[ ]:
 
 
+
+
+
+# In[ ]:
+
+
 def get_pronunciation(kana):
     #单假名词典
-    global table
+    global table,full_table
     #长音
     def match_long_pattern(roma):
         long_pron=['aa','ii','uu','ee','ei','oo','ou']
         return roma in long_pron
     #拗音（列表中为小写）
     spe_dict=dict((k,v) for k,v in zip(list('ぁぃぅぇぉゃゅょ'), list('aiueoauo')))
+    keep=None
     
-    #命名遗留
-    name=kana
+    #气息音
+    if kana[0] == '_':
+        keep=kana
+        kana="".join(list(filter(lambda x: x in table.keys(), kana)))
     
-    if name[0] in table.keys():
-        if len(name) == 1 or name[1] not in spe_dict.keys():
-            pron=table[name[0]]
+    if kana and kana[0] in table.keys():
+        if len(kana) == 1 or name[1] not in spe_dict.keys():
+            pron=table[kana[0]]
             print(pron)
         else:
-            pron=table[name[0]]
+            pron=table[kana[0]]
             if len(pron) == 1:
-                pron=pron+spe_dict[name[1]]
+                pron=pron+spe_dict[kana[1]]
             elif len(pron) == 2:
                 #长音
-                if match_long_pattern(pron[1]+spe_dict[name[1]]):
-                    pron=pron+spe_dict[name[1]]
+                if match_long_pattern(pron[1]+spe_dict[kana[1]]):
+                    pron=pron+spe_dict[kana[1]]
+                elif kana[0] == 'ふ':
+                    pron=pron[:-1]+spe_dict[kana[1]]
+                elif kana[0] in list('すず'):
+                    pron=pron+spe_dict[kana[1]]
                 else:
-                    pron=pron[:-1]+'y'+spe_dict[name[1]]
+                    pron=pron[:-1]+'y'+spe_dict[kana[1]]
             else:
-                pron=pron[:-1]+spe_dict[name[1]]
-            print(pron,end='\t')
-            print('spe')
+                pron=pron[:-1]+spe_dict[kana[1]]
+            print(pron,'\tspe')
+            full_table[kana]=pron
+            
+        if keep is not None:
+            pron=keep.replace(kana,pron)
             
         return True,pron
     else:
@@ -183,6 +199,7 @@ def get_pronunciation(kana):
 #确认无误后修改NDEBUG为True
 NDEBUG=False
 
+full_table=table
 wavs=glob(new_dest+'/*.wav')
 for wav in wavs:
     freq_name=wav.replace('.wav','_wav.frq')
@@ -197,12 +214,69 @@ for wav in wavs:
             if not os.path.exists(dst):
                 shutil.move(fname, dst)
             else:
-                print('file '+dst+'already exits,skip it.')
+                print('file '+dst+' already exits,skip it.')
 
         if os.path.exists(wav) and os.path.exists(freq_name):
             rename_wav(wav,name,pron)
             rename_wav(freq_name,name,pron)
     else:
         print()
+
+
+# In[ ]:
+
+
+with open(new_dest+'/oto-clean.ini','r',encoding='utf-8') as f:
+    ctx=f.read()
+
+
+# In[ ]:
+
+
+keys=list(full_table.keys())
+keys.sort(key=len,reverse=True)
+re=[]
+for line in ctx.splitlines():
+    #不保证连续音正确性，只适合单独音
+    for k in keys:
+        line=line.replace(k,full_table[k])
+    print(line)
+    re.append(line)
+    
+with open(new_dest+'/oto.ini','w',encoding='utf-8') as f:
+    f.write('\n'.join(re))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+# waves=glob('D:/春歌ナナVer1.3/*.wav')
+# os.chdir('D:/春歌ナナVer1.3')
+# for filename in waves:
+#     name=os.path.splitext(os.path.split(filename)[1])[0]
+#     if name in table.keys():
+#         dest='.\\春歌ナナVer1.3\\New\\%s.wav' % table[name]
+# #         shutil.copy(filename,dest)
+#         cmd=r'.\ffmpeg.exe -y -i %s.wav -ac 1 .\New\%s.wav' % (name,table[name])
+#         print(cmd)
+        
+#         p=subprocess.Popen(r"powershell "+cmd, shell=True,
+#                           stdout=subprocess.PIPE)
+#         out,err=p.communicate()
+#         text=out.decode('utf-8')
+#         print(text)
+
+# #         print('copy {} to {}'.format(filename,dest))
+
+
+# In[ ]:
+
+
 
 
