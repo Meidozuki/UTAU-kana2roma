@@ -1,7 +1,6 @@
 # UTAU-kana2roma
 **使用方法**
 
-
-1、通过bandzip或其他压缩软件解压为日语假名的wav文件（如あ.wav）<br>
-2、将oto.ini通过word打开，打开时选择JIS，然后另存为文本，选择UTF-8格式，重命名为oto-clean.ini<br>
+1、安装bandizip，或直接通过bandzip或其他压缩软件解压为日语假名的wav文件（如あ.wav） <br>
+2、在python脚本中修改目标文件夹<br>
 3、运行python脚本<br>
