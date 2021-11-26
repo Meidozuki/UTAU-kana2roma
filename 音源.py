@@ -1,15 +1,51 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import os
 import shutil
+import subprocess
 from glob import glob
 
 
-# In[ ]:
+# In[2]:
+
+
+class CodePage(object):
+    ChineseSimplified=936
+    ChineseTraditional=950
+    Japanese=932
+    UTF_8=65001
+
+def one_process(cmd):
+    p=subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+    out,err=p.communicate()
+    return out.decode('utf-8')
+
+
+# In[3]:
+
+
+#使用bandizip CLI解压
+#测试
+out=one_process('bz')
+if not len(out) > 0:
+    raise AssertionError('Output is empty. Maybe Bandizip is not installed.')
+print('\n'.join(out.split('\r\n')[:4]))
+
+zip_path='D:/test/tandokuon.zip'
+wd,zip_name=os.path.split(zip_path)
+cwd=os.getcwd()
+os.chdir(wd)
+
+cmd='bandizip x -cp:{} {}'.format(CodePage.Japanese,zip_name)
+one_process(cmd)
+os.chdir(cwd)
+
+
+# In[4]:
 
 
 def delete_files(expr):
@@ -19,37 +55,38 @@ def delete_files(expr):
     print(f'delete {len(_lis)} files')
 
 
-# In[ ]:
+# In[5]:
 
 
-new_dest='D:\\春歌ナナVer1.3\\New'
+unzip_dst=r'D:\test\春歌ナナVer1.3'
+new_dest=os.path.join(unzip_dst,'New')
 if not os.path.exists(new_dest):
     os.mkdir(new_dest)
 
 
-# In[ ]:
+# In[6]:
 
 
 #使用后缀排除当前目录下新文件夹
-lis=glob('D:/春歌*/*.*')
+lis=glob(os.path.join(unzip_dst,'*.*'))
 print(len(lis))
 lis
 
 
-# In[ ]:
+# In[7]:
 
 
-#delete_files(r'D:\春歌ナナVer1.3\New\*')
+# delete_files(r'D:\春歌ナナVer1.3\New\*')
 
 
-# In[ ]:
+# In[8]:
 
 
 for filename in lis:
     shutil.copy(filename,new_dest)
 
 
-# In[ ]:
+# In[9]:
 
 
 pron_text="""あa
@@ -137,13 +174,7 @@ for line in pron_text.splitlines():
 table=dict((key,value) for key,value in zip(kana,alpha))
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
+# In[10]:
 
 
 def get_pronunciation(kana):
@@ -193,7 +224,7 @@ def get_pronunciation(kana):
         return False,kana
 
 
-# In[ ]:
+# In[12]:
 
 
 #确认无误后修改NDEBUG为True
@@ -223,14 +254,17 @@ for wav in wavs:
         print()
 
 
-# In[ ]:
+# In[13]:
 
 
-with open(new_dest+'/oto-clean.ini','r',encoding='utf-8') as f:
+oto_path=os.path.join(new_dest,'oto.ini')
+with open(oto_path,encoding='shift-jis') as f:
     ctx=f.read()
+assert len(ctx) > 0
+os.rename(oto_path,os.path.join(new_dest,'oto_0.ini'))
 
 
-# In[ ]:
+# In[14]:
 
 
 keys=list(full_table.keys())
@@ -243,36 +277,8 @@ for line in ctx.splitlines():
     print(line)
     re.append(line)
     
-with open(new_dest+'/oto.ini','w',encoding='utf-8') as f:
+with open(oto_path,'w',encoding='utf-8') as f:
     f.write('\n'.join(re))
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-# waves=glob('D:/春歌ナナVer1.3/*.wav')
-# os.chdir('D:/春歌ナナVer1.3')
-# for filename in waves:
-#     name=os.path.splitext(os.path.split(filename)[1])[0]
-#     if name in table.keys():
-#         dest='.\\春歌ナナVer1.3\\New\\%s.wav' % table[name]
-# #         shutil.copy(filename,dest)
-#         cmd=r'.\ffmpeg.exe -y -i %s.wav -ac 1 .\New\%s.wav' % (name,table[name])
-#         print(cmd)
-        
-#         p=subprocess.Popen(r"powershell "+cmd, shell=True,
-#                           stdout=subprocess.PIPE)
-#         out,err=p.communicate()
-#         text=out.decode('utf-8')
-#         print(text)
-
-# #         print('copy {} to {}'.format(filename,dest))
 
 
 # In[ ]:
